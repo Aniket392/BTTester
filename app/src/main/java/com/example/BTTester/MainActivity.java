@@ -18,7 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.couchbase.lite.internal.p2p.ble.BLEService;
+import com.couchbase.lite.internal.p2p.ble.BleService;
 import com.couchbase.lite.internal.p2p.ble.BleGattInboundListener;
 import com.couchbase.lite.internal.p2p.ble.BleGattServer;
 import com.couchbase.lite.internal.p2p.ble.Peer;
@@ -26,7 +26,7 @@ import com.couchbase.lite.internal.p2p.ble.PeerBrowseListener;
 import com.couchbase.lite.internal.p2p.ble.BlePublisher;
 import com.couchbase.lite.internal.p2p.ble.BlePublisherHandle;
 import com.couchbase.lite.internal.p2p.ble.BlePublisherListener;
-import com.couchbase.lite.internal.permissions.BLEPermissionRequirements;
+import com.couchbase.lite.internal.permissions.BlePermissionRequirements;
 public class MainActivity extends AppCompatActivity {
     private TextView statusView;
     private Button startBtn;
@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
     private BlePublisher publisher;
     private BlePublisherHandle handle;
-    private BLEService bleService;
+    private BleService bleService;
     private BleGattServer gattServer; // now started implicitly by publisher when hosting
 
     private enum PendingAction { NONE, START_ADVERTISE, START_SCAN }
@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         publisher = new BlePublisher(adapter);
-        bleService = new BLEService(this, adapter);
+        bleService = new BleService(this, adapter);
         gattServer = new BleGattServer(this, adapter);
 
         startBtn.setOnClickListener(v -> ensurePermissionsThenStartAdvertising());
@@ -127,8 +127,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private boolean hasAdvertisePermissions() { return BLEPermissionRequirements.hasAdvertisePermissions(this); }
-    private boolean hasScanPermissions() { return BLEPermissionRequirements.hasScanPermissions(this); }
+    private boolean hasAdvertisePermissions() { return BlePermissionRequirements.hasAdvertisePermissions(this); }
+    private boolean hasScanPermissions() { return BlePermissionRequirements.hasScanPermissions(this); }
 
     @RequiresPermission(allOf = {Manifest.permission.BLUETOOTH_ADVERTISE, Manifest.permission.BLUETOOTH_CONNECT})
     private void startAdvertising() {

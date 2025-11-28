@@ -177,12 +177,7 @@ public class MainActivity extends AppCompatActivity {
             @Override public void onError(Throwable t) { setStatus("Scan error: " + t.getMessage()); }
             @Override public void onCompleted() { setStatus("Scan completed"); }
         });
-        bleService.startBrowsing(new PeerBrowseListener() {
-            @Override public void onPeerDiscovered(Peer peer) { /* handled via listeners */ }
-            @Override public void onPeerUpdated(Peer peer) { }
-            @Override public void onPeerLost(Peer peer) { }
-            @Override public void onError(Throwable t) { setStatus("Scan error: " + t.getMessage()); }
-        });
+        bleService.startBrowsing();
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_ADVERTISE)

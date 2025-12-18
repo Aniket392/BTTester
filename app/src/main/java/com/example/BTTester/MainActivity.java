@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.AdvertiseSettings;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -96,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
     @RequiresPermission(allOf = {Manifest.permission.BLUETOOTH_ADVERTISE, Manifest.permission.BLUETOOTH_CONNECT})
     private void ensurePermissionsThenStartAdvertising() {
+        if (!checkLocationServicesIfNeeded()) { return; }
         if (hasAdvertisePermissions()) { startAdvertising(); return; }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             pendingAction = PendingAction.START_ADVERTISE;
@@ -107,12 +109,16 @@ public class MainActivity extends AppCompatActivity {
         }
         else {
             pendingAction = PendingAction.START_ADVERTISE;
-            permissionLauncher.launch(new String[]{ Manifest.permission.ACCESS_FINE_LOCATION });
+            permissionLauncher.launch(new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+            });
         }
     }
 
     @RequiresPermission(allOf = {Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT})
     private void ensurePermissionsThenStartScanning() {
+        if (!checkLocationServicesIfNeeded()) { return; }
         if (hasScanPermissions()) { startScanning(); return; }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             pendingAction = PendingAction.START_SCAN;
@@ -123,8 +129,36 @@ public class MainActivity extends AppCompatActivity {
         }
         else {
             pendingAction = PendingAction.START_SCAN;
-            permissionLauncher.launch(new String[]{ Manifest.permission.ACCESS_FINE_LOCATION });
+            permissionLauncher.launch(new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+            });
         }
+    }
+
+
+    /**
+     * On Android 11 and below, location services must be enabled for BLE scanning/advertising.
+     * @return true if check passes or not needed; false if location is required but disabled
+     */
+    private boolean checkLocationServicesIfNeeded() {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) { return true; } // Android 12+ doesn't need location
+
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if (locationManager == null) {
+            setStatus("ERROR: Cannot access location manager");
+            return false;
+        }
+
+        boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean networkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+        if (!gpsEnabled && !networkEnabled) {
+            setStatus("ERROR: Location services disabled. Enable location in device settings for BLE on Android 11.");
+            return false;
+        }
+
+        return true;
     }
 
     private boolean hasAdvertisePermissions() { return BlePermissionRequirements.hasAdvertisePermissions(this); }
